@@ -1,4 +1,4 @@
-import url_lib , re ,timelib ,os ,Threadinglib
+import url_lib , re ,timelib ,os ,Threadinglib ,sys
 from collections import deque
 
 def download_beta(path="",iter=""):
@@ -51,9 +51,39 @@ def get_jpg_list(txt=""):
             jpg_list = re.compile(r'path\\":\\"[^"]*\.'+temp+'\\\\').findall(txt)
             if not jpg_list:
                 return False
-    return jpg_list
+    return jpg_list    
 
 ub = url_lib.url_lib()
+if len(sys.argv)>1:
+    if sys.argv[1][:4] == "http":
+        ub.url = sys.argv[1]
+    else:
+        repair(sys.argv[1])
+        exit()
+    with open("bcy_Cookie.txt","r") as c: 
+        ub.Headers["Cookie"]=c.read()
+    txt=ub.Get()
+    txt=txt.read().decode("utf-8")
+    jpg_list = get_jpg_list(txt)
+    if not jpg_list:
+        exit()
+    jpg_url_enu=list()
+    for i in enumerate(jpg_list):
+        jpg_url_enu.append([i[0]+1,i[1][9:-2].replace("\\\\","\\").encode("utf-8").decode("unicode-escape")])
+    jpg_url_de_iterator = deque(jpg_url_enu)
+    @timelib.Timelog
+    def download_now():
+        path=timelib.Showtime("$year-$mon-$day--$hour-$min-$sec")
+        os.system("mkdir "+path)
+        if len(jpg_list)>4:
+            Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*4,[[path,jpg_url_de_iterator]]*4) )
+        else:
+            Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*3,[[path,jpg_url_de_iterator]]*3) )
+        with open(path+"/"+path+"_url.txt","w") as url_file:
+            url_file.write(ub.url)
+    os.system("pause")
+    exit()
+
 while True:
     key = input("\nbcy_url ")
     if key[:4] == "http":

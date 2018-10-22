@@ -1,4 +1,4 @@
-import url_lib , re ,timelib ,os ,Threadinglib ,Class
+import url_lib , re ,timelib ,os ,Threadinglib,sys
 from collections import deque
 
 def download_beta(path = "",iter = ""):
@@ -57,6 +57,39 @@ def get_jpg_list(txt=""):
     return jpg_list
 
 ub = url_lib.url_lib()
+if len(sys.argv)>1:
+    if sys.argv[1][:4] == "http":
+        ub.url = sys.argv[1]
+    else:
+        repair(sys.argv[1][:4])
+        exit()
+    with open("weibo_Cookie.txt","r") as c: 
+        ub.Headers["Cookie"] = c.read()
+    txt = ub.Get()
+    if txt.getcode() !=200:
+        print("Error:",txt.getcode(),type(txt.getcode()))
+        exit()
+    txt=txt.read().decode("utf-8")
+    jpg_list = get_jpg_list(txt)
+    if not jpg_list:
+        exit()
+    jpg_list_emu = list()
+    for i in enumerate(jpg_list):
+        jpg_list_emu.append([i[0]+1,i[1][:-3]])
+    jpg_url_de_iterator = deque(jpg_list_emu)
+    
+    @timelib.Timelog
+    def download_now():
+        pre_url_str = "http://wx3.sinaimg.cn/large/"
+        path = timelib.Showtime("$year-$mon-$day--$hour-$min-$sec")
+        os.system("mkdir "+path)
+        if len(jpg_list)>2:
+            Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*3,[[path,jpg_url_de_iterator]]*3) )
+        else:
+            Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*2,[[path,jpg_url_de_iterator]]*2) )
+    exit()
+
+
 while True:
     key = input("\nweibo_url ")
     if key[:4] == "http":
