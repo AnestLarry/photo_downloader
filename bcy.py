@@ -1,3 +1,4 @@
+# version : v1.4
 import url_lib , re ,timelib ,os ,Threadinglib ,sys
 from collections import deque
 
@@ -8,6 +9,7 @@ def download_beta(path="",iter=""):
     while iter:
         iter_data = iter.popleft()
         d_ub.url = iter_data[1]
+        #print(d_ub.url)
         try:
             with open(path+"/"+path+"__"+str(iter_data[0])+".jpg" ,"wb" ,buffering=5*1024*1024+1 ) as photo_file:
                 photo = d_ub.Get()
@@ -30,8 +32,10 @@ def repair(path):
     if not jpg_list:
         raise
     jpg_url_enu=list()
+    logdata=str("\n\n")
     for i in enumerate(jpg_list):
-        jpg_url_enu.append([i[0]+1,i[1][9:-2].replace("\\\\","\\").encode("utf-8").decode("unicode-escape")])
+        jpg_url_enu.append([i[0]+1,i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape")])
+        logdata += i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape") + "\n"
     re_download=[]
     for i in jpg_url_enu:
         if not os.path.exists(path+"/"+path+"__"+str(i[0])+".jpg"):
@@ -39,19 +43,31 @@ def repair(path):
     re_download_de_iterator = deque(re_download)
     @timelib.Timelog
     def repair_now():
+        log(path,logdata)
         Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*3,[[path,re_download_de_iterator]]*3) )
 
 def get_jpg_list(txt=""):
-    jpg_list = re.compile(r'path\\":\\"[^"]*\.jpg\\\\').findall(txt)
+    jpg_list = re.compile(r',\\"original_path[^}]+\.jpg\\"\}').findall(txt)
     if not jpg_list:
         print("Guess file type : png")
-        jpg_list = re.compile(r'path\\":\\"[^"]*\.png\\\\').findall(txt)
+        jpg_list = re.compile(r',\\"original_path[^}]+\.png\\"\}').findall(txt)
         if not jpg_list:
             temp = input("Can't not find photos file,input type:")
-            jpg_list = re.compile(r'path\\":\\"[^"]*\.'+temp+'\\\\').findall(txt)
+            jpg_list = re.compile(r',\\"original_path[^}]+\.'+ temp +r'\\"\}').findall(txt)
             if not jpg_list:
                 return False
-    return jpg_list    
+    temp = input("Else type is need?  ")
+    if temp:
+        jpg_list += re.compile(r',\\"original_path[^}]+\.'+ temp +r'\\"\}').findall(txt)
+    return jpg_list
+
+def log(path,data):
+    try:
+        if data.replace("\n",""):
+            open(path+"/"+path+"__log.log","a").write(data)
+            print("log succ")
+    except IOError:
+        print("Error: "+IOError)
 
 ub = url_lib.url_lib()
 if len(sys.argv)>1:
@@ -67,14 +83,19 @@ if len(sys.argv)>1:
     jpg_list = get_jpg_list(txt)
     if not jpg_list:
         exit()
+    
     jpg_url_enu=list()
+    logdata=str("\n\n")
     for i in enumerate(jpg_list):
-        jpg_url_enu.append([i[0]+1,i[1][9:-2].replace("\\\\","\\").encode("utf-8").decode("unicode-escape")])
+        jpg_url_enu.append([i[0]+1,i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape")])
+        logdata += i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape") + "\n"
     jpg_url_de_iterator = deque(jpg_url_enu)
     @timelib.Timelog
     def download_now():
         path=timelib.Showtime("$year-$mon-$day--$hour-$min-$sec")
         os.system("mkdir "+path)
+        log(path,logdata)
+
         if len(jpg_list)>4:
             Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*4,[[path,jpg_url_de_iterator]]*4) )
         else:
@@ -95,7 +116,7 @@ while True:
         ub.Headers["Cookie"]=c.read()
     txt=ub.Get()
     if txt.getcode() !=200:
-        print("Error:",txt.getcode(),type(txt.getcode()))
+        print("Error:",txt.getcode())
         continue
     txt=txt.read().decode("utf-8")
     
@@ -103,18 +124,23 @@ while True:
     if not jpg_list:
         continue
         
+    logdata=str("\n\n")
     jpg_url_enu=list()
     for i in enumerate(jpg_list):
-        jpg_url_enu.append([i[0]+1,i[1][9:-2].replace("\\\\","\\").encode("utf-8").decode("unicode-escape")])
+        jpg_url_enu.append([i[0]+1,i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape")])
+        logdata += i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape") + "\n"
     jpg_url_de_iterator = deque(jpg_url_enu)
     
     @timelib.Timelog
     def download_now():
         path=timelib.Showtime("$year-$mon-$day--$hour-$min-$sec")
         os.system("mkdir "+path)
+        log(path,logdata)
+
         if len(jpg_list)>4:
             Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*4,[[path,jpg_url_de_iterator]]*4) )
         else:
             Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*3,[[path,jpg_url_de_iterator]]*3) )
         with open(path+"/"+path+"_url.txt","w") as url_file:
             url_file.write(ub.url)
+        
