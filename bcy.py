@@ -4,8 +4,6 @@ from collections import deque
 
 def download_beta(path="",iter=""):
     d_ub = url_lib.url_lib()
-    with open("bcy_Cookie.txt","r") as c: 
-        d_ub.Headers["Cookie"]=c.read()
     while iter:
         iter_data = iter.popleft()
         d_ub.url = iter_data[1]
@@ -25,8 +23,6 @@ def download_beta(path="",iter=""):
 def repair(path):
     with open(path+"/"+path+"_url.txt" ,"r" ) as url_file:
         ub.url =url_file.read()
-    with open("bcy_Cookie.txt","r") as c: 
-        ub.Headers["Cookie"]=c.read()
     txt=ub.Get().read().decode("utf-8")
     jpg_list = get_jpg_list(txt)
     if not jpg_list:
@@ -76,8 +72,6 @@ if len(sys.argv)>1:
     else:
         repair(sys.argv[1])
         exit()
-    with open("bcy_Cookie.txt","r") as c: 
-        ub.Headers["Cookie"]=c.read()
     txt=ub.Get()
     txt=txt.read().decode("utf-8")
     jpg_list = get_jpg_list(txt)
@@ -102,7 +96,6 @@ if len(sys.argv)>1:
             Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*3,[[path,jpg_url_de_iterator]]*3) )
         with open(path+"/"+path+"_url.txt","w") as url_file:
             url_file.write(ub.url)
-    os.system("pause")
     exit()
 
 while True:
@@ -112,8 +105,6 @@ while True:
     else:
         repair(key)
         continue
-    with open("bcy_Cookie.txt","r") as c: 
-        ub.Headers["Cookie"]=c.read()
     txt=ub.Get()
     if txt.getcode() !=200:
         print("Error:",txt.getcode())

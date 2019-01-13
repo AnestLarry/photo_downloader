@@ -5,10 +5,9 @@ def download_beta(path = "",iter = ""):
     d_ub = url_lib.url_lib()
     with open("weibo_Cookie.txt","r") as c: 
         d_ub.Headers["Cookie"] = c.read()
-    pre_url_str = "http://wx3.sinaimg.cn/large/"
     while iter:
         iter_data = iter.popleft()
-        d_ub.url = pre_url_str + iter_data[1]
+        d_ub.url =  iter_data[1]
         try:
             with open(path+"/" + path + "__"+str(iter_data[0])+".jpg" ,"wb" ,buffering = 10*1024*1024+1 ) as photo_file:
                 photo = d_ub.Get()
@@ -56,6 +55,14 @@ def get_jpg_list(txt=""):
                 return False
     return jpg_list
 
+def log(path,data):
+    try:
+        if data.replace("\n",""):
+            open(path+"/"+path+"__log.log","a").write(data)
+            print("log succ")
+    except IOError:
+        print("Error: "+str(IOError))
+
 ub = url_lib.url_lib()
 if len(sys.argv)>1:
     if sys.argv[1][:4] == "http":
@@ -74,15 +81,17 @@ if len(sys.argv)>1:
     if not jpg_list:
         exit()
     jpg_list_emu = list()
+    logdata=str("\n\n")
     for i in enumerate(jpg_list):
-        jpg_list_emu.append([i[0]+1,i[1][:-3]])
+        jpg_list_emu.append([i[0]+1, "http://wx3.sinaimg.cn/large/" + i[1][:-3]])
+        logdata += "http://wx3.sinaimg.cn/large/" + i[1][:-3] + "\n"
     jpg_url_de_iterator = deque(jpg_list_emu)
     
     @timelib.Timelog
     def download_now():
-        pre_url_str = "http://wx3.sinaimg.cn/large/"
         path = timelib.Showtime("$year-$mon-$day--$hour-$min-$sec")
         os.system("mkdir "+path)
+        log(path,logdata)
         if len(jpg_list)>2:
             Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*3,[[path,jpg_url_de_iterator]]*3) )
         else:
@@ -108,15 +117,17 @@ while True:
     if not jpg_list:
         continue
     jpg_list_emu = list()
+    logdata=str("\n\n")
     for i in enumerate(jpg_list):
-        jpg_list_emu.append([i[0]+1,i[1][:-3]])
+        jpg_list_emu.append([i[0]+1,"http://wx3.sinaimg.cn/large/" + i[1][:-3]])
+        logdata += "http://wx3.sinaimg.cn/large/" + i[1][:-3] + "\n"
     jpg_url_de_iterator = deque(jpg_list_emu)
     
     @timelib.Timelog
     def download_now():
-        pre_url_str = "http://wx3.sinaimg.cn/large/"
         path = timelib.Showtime("$year-$mon-$day--$hour-$min-$sec")
         os.system("mkdir "+path)
+        log(path,logdata)
         if len(jpg_list)>2:
             Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*3,[[path,jpg_url_de_iterator]]*3) )
         else:
