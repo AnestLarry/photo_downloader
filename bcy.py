@@ -1,5 +1,6 @@
-# version : v1.4
-import url_lib , re ,timelib ,os ,Threadinglib ,sys
+# version : v1.41
+import url_lib , re ,timelib ,Threadinglib ,sys
+import subprocess as sp
 from collections import deque
 
 def download_beta(path="",iter=""):
@@ -21,6 +22,7 @@ def download_beta(path="",iter=""):
         print(iter_data[0],"file is downloaded.")
 
 def repair(path):
+    import os
     with open(path+"/"+path+"_url.txt" ,"r" ) as url_file:
         ub.url =url_file.read()
     txt=ub.Get().read().decode("utf-8")
@@ -86,8 +88,7 @@ if len(sys.argv)>1:
     jpg_url_de_iterator = deque(jpg_url_enu)
     @timelib.Timelog
     def download_now():
-        path=timelib.Showtime("$year-$mon-$day--$hour-$min-$sec")
-        os.system("mkdir "+path)
+        path=sp.check_output("create_path.exe").decode()
         log(path,logdata)
 
         if len(jpg_list)>4:
@@ -124,8 +125,7 @@ while True:
     
     @timelib.Timelog
     def download_now():
-        path=timelib.Showtime("$year-$mon-$day--$hour-$min-$sec")
-        os.system("mkdir "+path)
+        path=sp.check_output("create_path.exe").decode()
         log(path,logdata)
 
         if len(jpg_list)>4:
