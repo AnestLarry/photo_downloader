@@ -17,9 +17,10 @@ def download_beta(path="",iter=""):
                     photo_file.write(photo_data)
                     photo_file.flush()
                     photo_data = photo.read(5*1024*1024)
+            print(iter_data[0],"file is downloaded.")
         except IOError :
             print(iter_data[0]," file is fail.")
-        print(iter_data[0],"file is downloaded.")
+        
 
 def repair(path):
     import os
@@ -90,13 +91,12 @@ if len(sys.argv)>1:
     def download_now():
         path=sp.check_output("create_path.exe").decode()
         log(path,logdata)
-
+        with open(path+"/"+path+"_url.txt","w") as url_file:
+            url_file.write(ub.url)
         if len(jpg_list)>4:
             Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*4,[[path,jpg_url_de_iterator]]*4) )
         else:
             Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*3,[[path,jpg_url_de_iterator]]*3) )
-        with open(path+"/"+path+"_url.txt","w") as url_file:
-            url_file.write(ub.url)
     exit()
 
 while True:
@@ -127,11 +127,11 @@ while True:
     def download_now():
         path=sp.check_output("create_path.exe").decode()
         log(path,logdata)
-
+        with open(path+"/"+path+"_url.txt","w") as url_file:
+            url_file.write(ub.url)
         if len(jpg_list)>4:
             Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*4,[[path,jpg_url_de_iterator]]*4) )
         else:
             Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*3,[[path,jpg_url_de_iterator]]*3) )
-        with open(path+"/"+path+"_url.txt","w") as url_file:
-            url_file.write(ub.url)
+
         
