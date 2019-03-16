@@ -1,5 +1,5 @@
 # version : v1.41
-import url_lib , re ,timelib ,Threadinglib ,sys
+import url_lib , re ,timelib ,Threadinglib ,sys,json,os
 import subprocess as sp
 from collections import deque
 
@@ -10,7 +10,7 @@ def download_beta(path="",iter=""):
         d_ub.url = iter_data[1]
         #print(d_ub.url)
         try:
-            with open(path+"/"+path+"__"+str(iter_data[0])+".jpg" ,"wb" ,buffering=5*1024*1024+1 ) as photo_file:
+            with open(path+"/"+path+"__"+str(iter_data[0])+os.path.splitext(iter_data[1])[-1] ,"wb" ,buffering=5*1024*1024+1 ) as photo_file:
                 photo = d_ub.Get()
                 photo_data = photo.read(5*1024*1024)
                 while photo_data:
@@ -29,12 +29,12 @@ def repair(path):
     txt=ub.Get().read().decode("utf-8")
     jpg_list = get_jpg_list(txt)
     if not jpg_list:
-        raise
+        raise "not list"
     jpg_url_enu=list()
     logdata=str("\n\n")
     for i in enumerate(jpg_list):
-        jpg_url_enu.append([i[0]+1,i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape")])
-        logdata += i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape") + "\n"
+        jpg_url_enu.append([i[0]+1,i[1]])
+        logdata += str(i[0]+1)+" : "+i[1] + "\n"
     re_download=[]
     for i in jpg_url_enu:
         if not os.path.exists(path+"/"+path+"__"+str(i[0])+".jpg"):
@@ -46,18 +46,12 @@ def repair(path):
         Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*3,[[path,re_download_de_iterator]]*3) )
 
 def get_jpg_list(txt=""):
-    jpg_list = re.compile(r',\\"original_path[^}]+\.jpg\\"\}').findall(txt)
-    if not jpg_list:
-        print("Guess file type : png")
-        jpg_list = re.compile(r',\\"original_path[^}]+\.png\\"\}').findall(txt)
-        if not jpg_list:
-            temp = input("Can't not find photos file,input type:")
-            jpg_list = re.compile(r',\\"original_path[^}]+\.'+ temp +r'\\"\}').findall(txt)
-            if not jpg_list:
-                return False
-    temp = input("Else type is need?  ")
-    if temp:
-        jpg_list += re.compile(r',\\"original_path[^}]+\.'+ temp +r'\\"\}').findall(txt)
+    txtline = re.compile("JSON\.parse[^\n]+\n").findall(txt)[0][12:-4]
+    txtline=txtline.encode("raw_unicode_escape").decode("unicode_escape")
+    data = json.loads(txtline)
+    jpg_list=[]
+    for i in  data["detail"]["post_data"]["multi"]:
+        jpg_list+=[i["original_path"]]
     return jpg_list
 
 def log(path,data):
@@ -84,8 +78,8 @@ if len(sys.argv)>1:
     jpg_url_enu=list()
     logdata=str("\n\n")
     for i in enumerate(jpg_list):
-        jpg_url_enu.append([i[0]+1,i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape")])
-        logdata += i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape") + "\n"
+        jpg_url_enu.append([i[0]+1,i[1]])
+        logdata += str(i[0]+1)+" : "+i[1] + "\n"
     jpg_url_de_iterator = deque(jpg_url_enu)
     @timelib.Timelog
     def download_now():
@@ -119,8 +113,8 @@ while True:
     logdata=str("\n\n")
     jpg_url_enu=list()
     for i in enumerate(jpg_list):
-        jpg_url_enu.append([i[0]+1,i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape")])
-        logdata += i[1][21:-3].replace("\\\\","\\").encode("utf-8").decode("unicode_escape") + "\n"
+        jpg_url_enu.append([i[0]+1,i[1]])
+        logdata += str(i[0]+1)+" : "+i[1] + "\n"
     jpg_url_de_iterator = deque(jpg_url_enu)
     
     @timelib.Timelog
