@@ -2,11 +2,26 @@
 import url_lib , re ,timelib ,Threadinglib,sys
 import subprocess as sp
 from collections import deque
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+options = Options()
+
+options.binary_location = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+
+options.add_argument('--headless')
+options.add_argument('--disable-gpu')
+
+opener = webdriver.Chrome(chrome_options=options)
 
 def download_beta(path = "",iter = ""):
     d_ub = url_lib.url_lib()
     with open("weibo_Cookie.txt","r") as c: 
         d_ub.Headers["Cookie"] = c.read()
+    with open(path+"/"+path+"_url.txt","w") as url_file:
+        try:
+            url_file.write(ub.url[:ub.url.index("?")])
+        except:
+            url_file.write(ub.url)
     while iter:
         iter_data = iter.popleft()
         d_ub.url =  iter_data[1]
@@ -21,19 +36,18 @@ def download_beta(path = "",iter = ""):
         except IOError :
             print(iter_data[0]," file is downloaded.")
         print(iter_data[0],"file is downloaded.")
-    with open(path+"/"+path+"_url.txt","w") as url_file:
-        url_file.write(ub.url)
+
 
 def repair(path):
     import os
     with open(path+"/"+path+"_url.txt" ,"r" ) as url_file:
-        ub.url =url_file.read()
+        opener.get( url_file.read() )
     with open("weibo_Cookie.txt","r") as c: 
         ub.Headers["Cookie"] = c.read()
-    txt = ub.Get().read().decode("utf-8")
+    txt = opener.page_source
     jpg_list = get_jpg_list(txt)
     if not jpg_list:
-        raise
+        raise "not url in it"
     jpg_list_emu = list()
     for i in enumerate(jpg_list):
         jpg_list_emu.append([i[0]+1,i[1][:-3].replace("\\\\","\\").encode("utf-8").decode("unicode-escape")])
@@ -47,7 +61,8 @@ def repair(path):
         Threadinglib.Delay_Threading_To_Exit( Threadinglib.Multithreading_Run([download_beta]*3,[[path,re_download_de_iterator]]*3) )
 
 def get_jpg_list(txt=""):
-    jpg_list = re.compile(r'[^%\\\/\.]*\.jpg\\">').findall(txt)
+    jpg_list = re.compile("""%2F([A-z\d]*?)\.[A-z,]{0,3}?[,&]""").findall(txt)
+    jpg_list = list(set(jpg_list))
     if not jpg_list:
         print("Guess file type : png")
         jpg_list = re.compile(r'[^%\\\/\.]*\.png\\">').findall(txt)
@@ -55,7 +70,7 @@ def get_jpg_list(txt=""):
             temp = input("Can't not find photos file,input type:")
             jpg_list = re.compile(r'[^%\\\/\.]*\.'+temp+'\\').findall(txt)
             if not jpg_list:
-                return False
+                return []
     return jpg_list
 
 def log(path,data):
