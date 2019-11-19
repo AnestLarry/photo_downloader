@@ -10,6 +10,7 @@ import threading
 import sys
 from queue import Queue
 
+
 def handle_url(url: str):
     return "https://m.weibo.cn/status"+url[url.rindex("/"):]
 
@@ -19,7 +20,7 @@ def download_beta(path="", iter=""):
         iter_data = iter.popleft()
         try:
             with open(path+"/" + path + "__"+str(iter_data[0])+".jpg", "wb") as photo_file:
-                photo = requests.get(iter_data[1]).content
+                photo = requests.get(iter_data[1], timeout=30).content
                 photo_data = photo
                 photo_file.write(photo_data)
                 photo_file.flush()
@@ -34,7 +35,7 @@ def repair(path):
     print(path+"/"+path+"_url.txt")
     with open(path+"/"+path+"_url.txt", "r") as url_file:
         url = handle_url(json.loads(url_file.read())["mobile"])
-    res = requests.get(url)
+    res = requests.get(url, timeout=30)
     txt: str = res.text
     jpg_list = get_jpg_list(txt)
     if not jpg_list:
@@ -81,7 +82,7 @@ def Main(key: str):
     else:
         repair(key)
         return None
-    txt = requests.get(url)
+    txt = requests.get(url, timeout=10)
     txt = txt.text
     jpg_list = get_jpg_list(txt)
     if not jpg_list:
@@ -108,11 +109,13 @@ def Main(key: str):
                 [download_beta]*2, [[path, jpg_url_de_iterator]]*2))
     return None
 
-def rec(q:Queue):
-    for line in sys.stdin:
-        q.put(line.replace("\n",""))
 
-def work(q:Queue):
+def rec(q: Queue):
+    for line in sys.stdin:
+        q.put(line.replace("\n", ""))
+
+
+def work(q: Queue):
     while True:
         if not q.empty():
             key = q.get()
@@ -121,8 +124,8 @@ def work(q:Queue):
 
 if __name__ == "__main__":
     q = Queue()
-    threading.Thread(target=rec,args=(q,)).start()
-    w = threading.Thread(target=work,args=(q,))
+    threading.Thread(target=rec, args=(q,)).start()
+    w = threading.Thread(target=work, args=(q,))
     w.start()
     w.join()
     exit()
