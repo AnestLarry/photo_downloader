@@ -74,38 +74,6 @@ def log(path, data):
 
 
 ub = url_lib.url_lib()
-if len(sys.argv) > 1:
-    if sys.argv[1][:4] == "http":
-        ub.url = sys.argv[1]
-    else:
-        repair(sys.argv[1])
-        exit()
-    txt = ub.Get()
-    txt = txt.read().decode("utf-8")
-    jpg_list = get_jpg_list(txt)
-    if not jpg_list:
-        exit()
-
-    jpg_url_enu = list()
-    logdata = str("\n\n")
-    for i in enumerate(jpg_list):
-        jpg_url_enu.append([i[0]+1, i[1]])
-        logdata += str(i[0]+1)+" : "+i[1] + "\n"
-    jpg_url_de_iterator = deque(jpg_url_enu)
-    @timelib.Timelog
-    def download_now():
-        path = sp.check_output("create_path.exe").decode()
-        log(path, logdata)
-        with open(path+"/"+path+"_url.txt", "w") as url_file:
-            url_file.write(ub.url)
-        if len(jpg_list) > 4:
-            Threadinglib.Delay_Threading_To_Exit(Threadinglib.Multithreading_Run(
-                [download_beta]*4, [[path, jpg_url_de_iterator]]*4))
-        else:
-            Threadinglib.Delay_Threading_To_Exit(Threadinglib.Multithreading_Run(
-                [download_beta]*3, [[path, jpg_url_de_iterator]]*3))
-    exit()
-
 while True:
     key = input("\nbcy_url ")
     if key[:4] == "http":
@@ -123,11 +91,11 @@ while True:
     if not jpg_list:
         continue
 
-    logdata = str("\n\n")
+    logdata = dict()
     jpg_url_enu = list()
     for i in enumerate(jpg_list):
         jpg_url_enu.append([i[0]+1, i[1]])
-        logdata += str(i[0]+1)+" : "+i[1] + "\n"
+        logdata[str(i[0]+1)] = i[1]
     jpg_url_de_iterator = deque(jpg_url_enu)
 
     # @timelib.Timelog
