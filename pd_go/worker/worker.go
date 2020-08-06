@@ -1,9 +1,11 @@
 package Worker
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"pd_go/Libs"
 	"strings"
 	"sync"
 	"time"
@@ -44,10 +46,10 @@ func (q *Queue) isNil() bool {
 
 func Work(q *Queue, WorkId int32) {
 	for {
-		//fmt.Println(q.isNil())
-		for !(*q).isNil() {
+		aUrl := (*q).getOne()
+		if aUrl != nil {
 			fmt.Printf("Worker[%d] receviced a task.\n", WorkId)
-			aUrl := (*q).getOne()
+
 			timeStr := aUrl[2]
 			// timeStr:=time.Now().Format("2006-01-02--15-04-05")
 			// os.Mkdir(timeStr,0644)
@@ -67,7 +69,26 @@ func Work(q *Queue, WorkId int32) {
 }
 
 func Repair(folder string, q *Queue) {
-
+	rawLog, err := ioutil.ReadFile(fmt.Sprintf("%s/%s__log.txt", folder, folder))
+	var logJson map[string]string
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	err = json.Unmarshal(rawLog, &logJson)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	for k, v := range logJson {
+		//fmt.Printf(fmt.Sprintf("%s/%s__%s.%s", folder, folder, k, v[strings.LastIndex(v, ".")+1:]))
+		if Libs.LibsXExists(fmt.Sprintf("%s/%s__%s.%s", folder, folder, k, v[strings.LastIndex(v, ".")+1:])) {
+			delete(logJson, k)
+		} else {
+			(*q).AppendValue([]string{k, v, folder})
+		}
+	}
+	fmt.Printf("Repair: %d was enqueued.\n", len(logJson))
 }
 
 func GET(url string, headers map[string]string) ([]byte, int) {
