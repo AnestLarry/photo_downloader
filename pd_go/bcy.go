@@ -47,9 +47,15 @@ func main() {
 
 		timeStr := time.Now().Format("2006-01-02--15-04-05")
 		os.Mkdir(timeStr, 0644)
-		saveToFile(
-			fmt.Sprintf("%s/%s__url.txt", timeStr, timeStr),
-			[]byte(inputUrl[:strings.LastIndex(inputUrl, "?")]))
+		if strings.Contains(inputUrl, "?") {
+			saveToFile(
+				fmt.Sprintf("%s/%s__url.txt", timeStr, timeStr),
+				[]byte(inputUrl[:strings.LastIndex(inputUrl, "?")]))
+		}else{
+			saveToFile(
+				fmt.Sprintf("%s/%s__url.txt", timeStr, timeStr),
+				[]byte(inputUrl))
+		}
 		for i := 0; i < len(imageList); i++ {
 			logData[strconv.Itoa(i)] = imageList[i]
 			q.AppendValue([]string{strconv.Itoa(i), imageList[i], timeStr})
