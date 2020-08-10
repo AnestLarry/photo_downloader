@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"pd_go/worker"
+	Worker "pd_go/worker"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -36,7 +35,7 @@ func main() {
 		}
 		//txt, _ := utf8.DecodeRune(body)
 		var imageList []string
-		ProtectRun(func() {
+		Worker.ProtectRun(func() {
 			imageList = getImageList(body)
 		})
 		if len(imageList) == 0 {
@@ -51,7 +50,7 @@ func main() {
 			saveToFile(
 				fmt.Sprintf("%s/%s__url.txt", timeStr, timeStr),
 				[]byte(inputUrl[:strings.LastIndex(inputUrl, "?")]))
-		}else{
+		} else {
 			saveToFile(
 				fmt.Sprintf("%s/%s__url.txt", timeStr, timeStr),
 				[]byte(inputUrl))
@@ -83,7 +82,7 @@ func getImageList(txt []byte) []string {
 	}
 	rawJson = s
 
-	err := json.Unmarshal([]byte(rawJson ), &jsons)
+	err := json.Unmarshal([]byte(rawJson), &jsons)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -92,20 +91,6 @@ func getImageList(txt []byte) []string {
 		imageList = append(imageList, v["original_path"].(string))
 	}
 	return imageList
-}
-func ProtectRun(entry func()) {
-	// 延迟处理的函数
-	defer func() {
-		// 发生宕机时，获取panic传递的上下文并打印
-		err := recover()
-		switch err.(type) {
-		case runtime.Error: // 运行时错误
-			fmt.Println("runtime error:", err)
-		default: // 非运行时错误
-			fmt.Println("error:", err)
-		}
-	}()
-	entry()
 }
 func saveToFile(path string, body []byte) {
 	ioutil.WriteFile(path, body, 0644)

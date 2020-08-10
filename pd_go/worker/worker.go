@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"pd_go/Libs"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -123,4 +124,16 @@ func GET(url string, headers map[string]string) ([]byte, int) {
 	//}
 	//fmt.Println(string(response_body)) //网页源码
 	return responseBody, Code
+}
+func ProtectRun(entry func()) {
+	defer func() {
+		err := recover()
+		switch err.(type) {
+		case runtime.Error:
+			fmt.Println("runtime error:", err)
+		default:
+			fmt.Println("error:", err)
+		}
+	}()
+	entry()
 }
